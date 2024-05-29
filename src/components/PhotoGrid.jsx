@@ -1,17 +1,82 @@
 import { useState } from "react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faXmark } from "@fortawesome/free-solid-svg-icons"
 
 const PhotoGrid = () => {
   const [openModal, setOpenModal] = useState(false)
+  const [name, setName] = useState("")
+  const [uid, setUid] = useState("")
+  const [image, setImage] = useState(null)
 
   const handleAddClick = () => {
     setOpenModal(!openModal)
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    // Handle form submission
+    console.log("Name:", name)
+    console.log("UID:", uid)
+    console.log("Image:", image)
+  }
+
+  const handleImageChange = (e) => {
+    setImage(e.target.files[0])
   }
 
   return (
     <div className="photogrid-all">
       {openModal && (
         <div className="modal-all">
-          <div className="modal-inner"></div>
+          <FontAwesomeIcon
+            className="modal-close"
+            onClick={handleAddClick}
+            icon={faXmark}
+          />
+          <div className="modal-inner">
+            <form className="modal-form" onSubmit={handleSubmit}>
+              <div className="modal-name-wrap">
+                <div className="modal-name">
+                  <label htmlFor="name">FIRST NAME</label>
+                  <input
+                    type="text"
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    placeholder="Jane"
+                  />
+                </div>
+                <div className="modal-uid">
+                  <label htmlFor="uid">UID</label>
+                  <input
+                    type="text"
+                    id="uid"
+                    value={uid}
+                    onChange={(e) => setUid(e.target.value)}
+                    required
+                    placeholder="XXXXX"
+                    maxLength={5}
+                  />
+                </div>
+              </div>
+              <div className="modal-image">
+                <label className="modal-image-name" htmlFor="image">
+                  IMAGE
+                </label>
+                <input
+                  type="file"
+                  id="image"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  required
+                />
+              </div>
+              <button className="modal-submit-button" type="submit">
+                Submit
+              </button>
+            </form>
+          </div>
         </div>
       )}
       <h1 className="photogrid-title">Art found so far!</h1>
