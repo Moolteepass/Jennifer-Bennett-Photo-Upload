@@ -1,12 +1,14 @@
 import { useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faXmark } from "@fortawesome/free-solid-svg-icons"
+import artworkList from "./artworkList"
 
 const PhotoGrid = () => {
   const [openModal, setOpenModal] = useState(false)
   const [name, setName] = useState("")
   const [uid, setUid] = useState("")
   const [image, setImage] = useState(null)
+  const [uidNotFound, setUidNotFound] = useState(false)
 
   const handleAddClick = () => {
     setOpenModal(!openModal)
@@ -18,6 +20,13 @@ const PhotoGrid = () => {
     console.log("Name:", name)
     console.log("UID:", uid)
     console.log("Image:", image)
+
+    if (artworkList[uid]) {
+      setUidNotFound(false)
+      console.log("It was found")
+    } else {
+      setUidNotFound(true)
+    }
   }
 
   const handleImageChange = (e) => {
@@ -42,9 +51,16 @@ const PhotoGrid = () => {
                     type="text"
                     id="name"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e) => {
+                      const input = e.target.value
+                      if (/^[A-Za-z]*$/.test(input) || input === "") {
+                        // Only update the name state if the input contains only letters or is empty
+                        setName(input)
+                      }
+                    }}
                     required
                     placeholder="Jane"
+                    maxLength={20}
                   />
                 </div>
                 <div className="modal-uid">
@@ -53,7 +69,7 @@ const PhotoGrid = () => {
                     type="text"
                     id="uid"
                     value={uid}
-                    onChange={(e) => setUid(e.target.value)}
+                    onChange={(e) => setUid(e.target.value.toUpperCase())}
                     required
                     placeholder="XXXXX"
                     maxLength={5}
@@ -69,9 +85,15 @@ const PhotoGrid = () => {
                   id="image"
                   accept="image/*"
                   onChange={handleImageChange}
-                  required
                 />
               </div>
+              {uidNotFound ? (
+                <p className="error-message">
+                  UID not found. Please try again.
+                </p>
+              ) : (
+                <p className="success-message">Thanks for the submission!</p>
+              )}
               <button className="modal-submit-button" type="submit">
                 Submit
               </button>
