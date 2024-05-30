@@ -8,7 +8,8 @@ const PhotoGrid = () => {
   const [name, setName] = useState("")
   const [uid, setUid] = useState("")
   const [image, setImage] = useState(null)
-  const [uidNotFound, setUidNotFound] = useState(false)
+  const [uidFound, setUidFound] = useState(false)
+  const [formSubmitted, setFormSubmitted] = useState(false)
 
   const handleAddClick = () => {
     setOpenModal(!openModal)
@@ -21,12 +22,16 @@ const PhotoGrid = () => {
     console.log("UID:", uid)
     console.log("Image:", image)
 
+    setFormSubmitted(true)
+
     if (artworkList[uid]) {
-      setUidNotFound(false)
+      setUidFound(true)
       console.log("It was found")
     } else {
-      setUidNotFound(true)
+      setUidFound(false)
     }
+
+    window.location.reload()
   }
 
   const handleImageChange = (e) => {
@@ -84,15 +89,17 @@ const PhotoGrid = () => {
                   type="file"
                   id="image"
                   accept="image/*"
+                  capture="environment"
                   onChange={handleImageChange}
                 />
               </div>
-              {uidNotFound ? (
-                <p className="error-message">
-                  UID not found. Please try again.
+              {formSubmitted && !uidFound && (
+                <p className="error-message">Error: UID not found</p>
+              )}
+              {formSubmitted && uidFound && (
+                <p className="success-message">
+                  Thanks! Enjoy your new artwork!
                 </p>
-              ) : (
-                <p className="success-message">Thanks for the submission!</p>
               )}
               <button className="modal-submit-button" type="submit">
                 Submit
