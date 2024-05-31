@@ -3,12 +3,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faXmark } from "@fortawesome/free-solid-svg-icons"
 import artworkList from "./artworkList"
 import Airtable from "airtable"
+import axios from "axios"
 
 const PhotoGrid = () => {
   const [openModal, setOpenModal] = useState(false)
   const [name, setName] = useState("")
   const [uid, setUid] = useState("")
-  const [image, setImage] = useState(null)
   const [uidFound, setUidFound] = useState(false)
   const [formSubmitted, setFormSubmitted] = useState(false)
   const [data, setData] = useState([])
@@ -18,35 +18,40 @@ const PhotoGrid = () => {
   }
 
   const handleSubmit = (e) => {
-    const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY
-
-    var base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(
-      "appZwHtNztU5Pb76D"
-    )
     e.preventDefault()
-    // Handle form submission
-    console.log("Name:", name)
-    console.log("UID:", uid)
-    console.log("Image:", image)
-
     setFormSubmitted(true)
-
+    /* If we've found the UID */
     if (artworkList[uid]) {
+      /* const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY
+      var base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(
+        "appZwHtNztU5Pb76D"
+      )
+      const recordId = artworkList[uid].id */
+
       setUidFound(true)
-      console.log("It was found")
 
-      base("Paintings").update([
-        {
-          id: "recKHu9d9s906H3JY",
-          fields: {
-            uid: "VOT57",
-            Name: "Journalist",
+      const selectedFile = new FormData()
+      selectedFile.append("image", sendImage)
+
+      for (const entry of selectedFile.entries()) {
+        console.log(entry)
+      }
+
+      axios
+        .post("https://api.imgur.com/3/image", selectedFile, {
+          headers: {
+            Authorization: "Client-ID e2577e08f1d74e5",
+            "Content-Type": "multipart/form-data",
           },
-        },
-      ])
-
-      window.location.reload()
+        })
+        .then((response) => {
+          console.log(response)
+        })
+        .catch((error) => {
+          console.log(error)
+        })
     } else {
+      console.log("Not found")
       setUidFound(false)
     }
   }
@@ -77,7 +82,10 @@ const PhotoGrid = () => {
         .eachPage(
           function page(records, fetchNextPage) {
             records.forEach(function (record) {
-              allRecords.push(record.fields)
+              allRecords.push({
+                id: record.id,
+                ...record.fields,
+              })
             })
             fetchNextPage()
           },
@@ -101,8 +109,28 @@ const PhotoGrid = () => {
     fetchData()
   }, [])
 
-  const handleImageChange = (e) => {
-    setImage(e.target.files[0])
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0]
+    console.log(file)
+
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("upload_preset", "nmszaghq")
+
+      const cloudName = "drwp7yods" // Replace 'your_cloud_name' with your actual Cloudinary cloud name
+
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        formData
+      )
+
+      console.log("Image uploaded successfully:", response.data)
+      // Handle the response here, response.data.secure_url contains the URL of the uploaded image
+    } catch (error) {
+      console.error("Error uploading image to Cloudinary:", error)
+      // Handle the error here
+    }
   }
 
   return (
@@ -155,8 +183,7 @@ const PhotoGrid = () => {
                 <input
                   type="file"
                   id="image"
-                  capture="environment"
-                  accept="image/jpeg, image/png, image/heic"
+                  accept="image/jpeg, image/png"
                   size="15728640"
                   onChange={handleImageChange}
                 />
