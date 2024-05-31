@@ -1,7 +1,8 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faXmark } from "@fortawesome/free-solid-svg-icons"
 import artworkList from "./artworkList"
+import Airtable from "airtable"
 
 const PhotoGrid = () => {
   const [openModal, setOpenModal] = useState(false)
@@ -10,12 +11,18 @@ const PhotoGrid = () => {
   const [image, setImage] = useState(null)
   const [uidFound, setUidFound] = useState(false)
   const [formSubmitted, setFormSubmitted] = useState(false)
+  const [data, setData] = useState([])
 
   const handleAddClick = () => {
     setOpenModal(!openModal)
   }
 
   const handleSubmit = (e) => {
+    const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY
+
+    var base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(
+      "appZwHtNztU5Pb76D"
+    )
     e.preventDefault()
     // Handle form submission
     console.log("Name:", name)
@@ -27,12 +34,72 @@ const PhotoGrid = () => {
     if (artworkList[uid]) {
       setUidFound(true)
       console.log("It was found")
+
+      base("Paintings").update([
+        {
+          id: "recKHu9d9s906H3JY",
+          fields: {
+            uid: "VOT57",
+            Name: "Journalist",
+          },
+        },
+      ])
+
+      window.location.reload()
     } else {
       setUidFound(false)
     }
-
-    window.location.reload()
   }
+
+  useEffect(() => {
+    const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY
+
+    // Function to fetch data
+    const fetchData = async () => {
+      var base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(
+        "appZwHtNztU5Pb76D"
+      )
+
+      let allRecords = []
+
+      base("Paintings")
+        .select({
+          fields: [
+            "order",
+            "uid",
+            "name",
+            "templateImage",
+            "foundImage",
+            "foundBy",
+          ],
+          sort: [{ field: "order", direction: "asc" }],
+        })
+        .eachPage(
+          function page(records, fetchNextPage) {
+            records.forEach(function (record) {
+              allRecords.push(record.fields)
+            })
+            fetchNextPage()
+          },
+          function done(err) {
+            if (err) {
+              console.error(err)
+              return
+            }
+            setData(allRecords)
+            localStorage.setItem("cachedData", JSON.stringify(allRecords))
+            console.log("fetchResult", allRecords)
+          }
+        )
+    }
+
+    // Load data from localStorage or fetch it
+    if (localStorage.getItem("cachedData") !== null) {
+      console.log("cachedData exists, loading now")
+      setData(JSON.parse(localStorage.getItem("cachedData")))
+    }
+    fetchData()
+  }, [])
 
   const handleImageChange = (e) => {
     setImage(e.target.files[0])
@@ -88,8 +155,9 @@ const PhotoGrid = () => {
                 <input
                   type="file"
                   id="image"
-                  accept="image/*"
                   capture="environment"
+                  accept="image/jpeg, image/png, image/heic"
+                  size="15728640"
                   onChange={handleImageChange}
                 />
               </div>
@@ -113,66 +181,12 @@ const PhotoGrid = () => {
         I found some art!
       </button>
       <div className="photogrid-image-container">
-        <img src="https://picsum.photos/id/101/300/300" alt="" />
-        <img src="https://picsum.photos/id/102/300/300" alt="" />
-        <img src="https://picsum.photos/id/103/300/300" alt="" />
-        <img src="https://picsum.photos/id/104/300/300" alt="" />
-        <img src="https://picsum.photos/id/203/300/300" alt="" />
-        <img src="https://picsum.photos/id/106/300/300" alt="" />
-        <img src="https://picsum.photos/id/107/300/300" alt="" />
-        <img src="https://picsum.photos/id/108/300/300" alt="" />
-        <img src="https://picsum.photos/id/109/300/300" alt="" />
-        <img src="https://picsum.photos/id/110/300/300" alt="" />
-        <img src="https://picsum.photos/id/111/300/300" alt="" />
-        <img src="https://picsum.photos/id/112/300/300" alt="" />
-        <img src="https://picsum.photos/id/113/300/300" alt="" />
-        <img src="https://picsum.photos/id/114/300/300" alt="" />
-        <img src="https://picsum.photos/id/115/300/300" alt="" />
-        <img src="https://picsum.photos/id/116/300/300" alt="" />
-        <img src="https://picsum.photos/id/117/300/300" alt="" />
-        <img src="https://picsum.photos/id/118/300/300" alt="" />
-        <img src="https://picsum.photos/id/119/300/300" alt="" />
-        <img src="https://picsum.photos/id/120/300/300" alt="" />
-        <img src="https://picsum.photos/id/121/300/300" alt="" />
-        <img src="https://picsum.photos/id/122/300/300" alt="" />
-        <img src="https://picsum.photos/id/123/300/300" alt="" />
-        <img src="https://picsum.photos/id/124/300/300" alt="" />
-        <img src="https://picsum.photos/id/125/300/300" alt="" />
-        <img src="https://picsum.photos/id/126/300/300" alt="" />
-        <img src="https://picsum.photos/id/127/300/300" alt="" />
-        <img src="https://picsum.photos/id/128/300/300" alt="" />
-        <img src="https://picsum.photos/id/129/300/300" alt="" />
-        <img src="https://picsum.photos/id/130/300/300" alt="" />
-        <img src="https://picsum.photos/id/131/300/300" alt="" />
-        <img src="https://picsum.photos/id/132/300/300" alt="" />
-        <img src="https://picsum.photos/id/133/300/300" alt="" />
-        <img src="https://picsum.photos/id/134/300/300" alt="" />
-        <img src="https://picsum.photos/id/135/300/300" alt="" />
-        <img src="https://picsum.photos/id/136/300/300" alt="" />
-        <img src="https://picsum.photos/id/137/300/300" alt="" />
-        <img src="https://picsum.photos/id/198/300/300" alt="" />
-        <img src="https://picsum.photos/id/139/300/300" alt="" />
-        <img src="https://picsum.photos/id/240/300/300" alt="" />
-        <img src="https://picsum.photos/id/141/300/300" alt="" />
-        <img src="https://picsum.photos/id/142/300/300" alt="" />
-        <img src="https://picsum.photos/id/143/300/300" alt="" />
-        <img src="https://picsum.photos/id/144/300/300" alt="" />
-        <img src="https://picsum.photos/id/145/300/300" alt="" />
-        <img src="https://picsum.photos/id/146/300/300" alt="" />
-        <img src="https://picsum.photos/id/247/300/300" alt="" />
-        <img src="https://picsum.photos/id/287/300/300" alt="" />
-        <img src="https://picsum.photos/id/149/300/300" alt="" />
-        <img src="https://picsum.photos/id/301/300/300" alt="" />
-        <img src="https://picsum.photos/id/151/300/300" alt="" />
-        <img src="https://picsum.photos/id/152/300/300" alt="" />
-        <img src="https://picsum.photos/id/153/300/300" alt="" />
-        <img src="https://picsum.photos/id/154/300/300" alt="" />
-        <img src="https://picsum.photos/id/155/300/300" alt="" />
-        <img src="https://picsum.photos/id/156/300/300" alt="" />
-        <img src="https://picsum.photos/id/157/300/300" alt="" />
-        <img src="https://picsum.photos/id/158/300/300" alt="" />
-        <img src="https://picsum.photos/id/159/300/300" alt="" />
-        <img src="https://picsum.photos/id/160/300/300" alt="" />
+        {data.map((item, index) => {
+          const imgUrl =
+            (item.foundImage && item.foundImage[0].url) ||
+            (item.templateImage && item.templateImage[0].url)
+          return <img key={index} src={imgUrl} alt="" />
+        })}
       </div>
     </div>
   )
