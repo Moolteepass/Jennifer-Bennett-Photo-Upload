@@ -12,50 +12,75 @@ const PhotoGrid = () => {
   const [uidFound, setUidFound] = useState(false)
   const [formSubmitted, setFormSubmitted] = useState(false)
   const [data, setData] = useState([])
+  const [foundImage, setFoundImage] = useState(null)
 
   const handleAddClick = () => {
     setOpenModal(!openModal)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setFormSubmitted(true)
     /* If we've found the UID */
     if (artworkList[uid]) {
-      /* const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY
-      var base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(
-        "appZwHtNztU5Pb76D"
-      )
-      const recordId = artworkList[uid].id */
-
       setUidFound(true)
+      try {
+        /* Create new form data instance */
+        const formData = new FormData()
+        formData.append("file", foundImage)
+        /* Cloudinary upload preset */
+        formData.append("upload_preset", "nmszaghq")
 
-      const selectedFile = new FormData()
-      selectedFile.append("image", sendImage)
+        const cloudName = "drwp7yods" // Replace 'your_cloud_name' with your actual Cloudinary cloud name
 
-      for (const entry of selectedFile.entries()) {
-        console.log(entry)
+        /* Push image to cloudinary */
+        const response = await axios.post(
+          `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+          formData
+        )
+
+        // Handle the response here, response.data.secure_url contains the URL of the uploaded image
+        console.log("Image uploaded successfully:", response.data)
+        const sendImage = response.data.url
+
+        /* Airtable API Key */
+        const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY
+
+        /* New Airtable instance */
+        var base = new Airtable({ apiKey: AIRTABLE_API_KEY }).base(
+          "appZwHtNztU5Pb76D"
+        )
+        const record = data.find((item) => item.uid === uid)
+        const recordId = record.id
+        console.log("record id:", recordId)
+        console.log("name:", name)
+        console.log("send image", sendImage)
+
+        base("Paintings").update([
+          {
+            id: recordId,
+            fields: {
+              foundBy: name,
+              foundImage: sendImage,
+            },
+          },
+        ])
+      } catch (error) {
+        // Handle the error here
+        console.error("Error uploading image to Cloudinary:", error)
       }
 
-      axios
-        .post("https://api.imgur.com/3/image", selectedFile, {
-          headers: {
-            Authorization: "Client-ID e2577e08f1d74e5",
-            "Content-Type": "multipart/form-data",
-          },
-        })
-        .then((response) => {
-          console.log(response)
-        })
-        .catch((error) => {
-          console.log(error)
-        })
+      setTimeout(() => {
+        console.log("2 seconds have passed!")
+        window.location.reload()
+      }, 2000) // 2000 milliseconds = 2 seconds
     } else {
       console.log("Not found")
       setUidFound(false)
     }
   }
 
+  /* Fetch data from airtable */
   useEffect(() => {
     const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY
 
@@ -110,27 +135,8 @@ const PhotoGrid = () => {
   }, [])
 
   const handleImageChange = async (e) => {
-    const file = e.target.files[0]
-    console.log(file)
-
-    try {
-      const formData = new FormData()
-      formData.append("file", file)
-      formData.append("upload_preset", "nmszaghq")
-
-      const cloudName = "drwp7yods" // Replace 'your_cloud_name' with your actual Cloudinary cloud name
-
-      const response = await axios.post(
-        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-        formData
-      )
-
-      console.log("Image uploaded successfully:", response.data)
-      // Handle the response here, response.data.secure_url contains the URL of the uploaded image
-    } catch (error) {
-      console.error("Error uploading image to Cloudinary:", error)
-      // Handle the error here
-    }
+    setFoundImage(e.target.files[0])
+    console.log(e.target.files[0])
   }
 
   return (
@@ -210,9 +216,16 @@ const PhotoGrid = () => {
       <div className="photogrid-image-container">
         {data.map((item, index) => {
           const imgUrl =
-            (item.foundImage && item.foundImage[0].url) ||
+            (item.foundImage && item.foundImage) ||
             (item.templateImage && item.templateImage[0].url)
-          return <img key={index} src={imgUrl} alt="" />
+          return (
+            <div className="photogrid-container" key={index}>
+              <img src={imgUrl} alt="" />{" "}
+              <p className="photogrid-foundby">
+                {item.foundBy && `Found by ${item.foundBy}`}
+              </p>
+            </div>
+          )
         })}
       </div>
     </div>
