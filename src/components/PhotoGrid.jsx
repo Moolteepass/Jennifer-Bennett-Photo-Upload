@@ -120,16 +120,8 @@ const PhotoGrid = () => {
               return
             }
             setData(allRecords)
-            localStorage.setItem("cachedData", JSON.stringify(allRecords))
-            console.log("fetchResult", allRecords)
           }
         )
-    }
-
-    // Load data from localStorage or fetch it
-    if (localStorage.getItem("cachedData") !== null) {
-      console.log("cachedData exists, loading now")
-      setData(JSON.parse(localStorage.getItem("cachedData")))
     }
     fetchData()
   }, [])
