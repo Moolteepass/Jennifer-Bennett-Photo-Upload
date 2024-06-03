@@ -41,7 +41,7 @@ const PhotoGrid = () => {
 
         // Handle the response here, response.data.secure_url contains the URL of the uploaded image
         console.log("Image uploaded successfully:", response.data)
-        const sendImage = response.data.url
+        const sendImage = response.data.secure_urls
 
         /* Airtable API Key */
         const AIRTABLE_API_KEY = import.meta.env.VITE_AIRTABLE_API_KEY
