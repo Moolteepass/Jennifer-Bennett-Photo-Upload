@@ -164,3 +164,9 @@ body {
   color: green;
   font-size: 15px;
 }
+
+.please-wait {
+  font-size: 10px;
+  color: gray;
+  margin-top: 10px;
+}
