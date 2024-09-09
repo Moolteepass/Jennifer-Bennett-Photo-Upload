@@ -197,6 +197,7 @@ const PhotoGrid = () => {
               <button className="modal-submit-button" type="submit">
                 Submit
               </button>
+              <p>Please wait until the page refreshes, do not click away</p>
             </form>
           </div>
         </div>
